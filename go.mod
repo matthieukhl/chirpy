@@ -1,3 +1,3 @@
-module github.com/matthieukhl/go-http-server
+module github.com/matthieukhl/chirpy
 
 go 1.25.4
