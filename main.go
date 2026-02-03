@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -55,10 +56,77 @@ func main() {
 		apiCfg.fileServerHits.Store(0)
 	})
 
+	// Validate chirp endpoint
+	mux.HandleFunc("POST /api/validate_chirp", func(w http.ResponseWriter, r *http.Request) {
+		type parameters struct {
+			Body string `json:"body"`
+		}
+
+		decoder := json.NewDecoder(r.Body)
+		params := parameters{}
+		err := decoder.Decode(&params)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError)
+			return
+		}
+
+		if len(params.Body) > 140 {
+			respondWithError(w, http.StatusBadRequest)
+			return
+		}
+
+		type response struct {
+			Valid bool `json:"valid"`
+		}
+
+		respBody := response{Valid: true}
+		dat, err := json.Marshal(respBody)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(dat)
+
+	})
+
 	// Serve HTTP
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: mux,
 	}
 	log.Fatal(server.ListenAndServe())
+}
+
+func respondWithError(w http.ResponseWriter, code int) {
+	type resp struct {
+		Error string `json:"error"`
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	// Case - 400 Bad Request
+	if code == http.StatusBadRequest {
+		w.WriteHeader(http.StatusBadRequest)
+		response := resp{Error: "Chirp is too long"}
+		dat, err := json.Marshal(response)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError)
+		}
+		w.Write(dat)
+		return
+	}
+
+	// Case - 500 Internal Server Error
+	if code == http.StatusInternalServerError {
+		w.WriteHeader(http.StatusInternalServerError)
+		response := resp{Error: "Something went wrong"}
+		dat, err := json.Marshal(response)
+		if err != nil {
+			log.Printf("Error marshalling JSON: %v\n", err)
+		}
+		w.Write(dat)
+		return
+	}
+
 }
