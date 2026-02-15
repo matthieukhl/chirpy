@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync/atomic"
 )
 
@@ -75,18 +76,18 @@ func main() {
 			return
 		}
 
-		type response struct {
-			Valid bool `json:"valid"`
+		sliceBody := strings.Split(params.Body, " ")
+		for i := range sliceBody {
+			if strings.ToLower(sliceBody[i]) == "kerfuffle" || strings.ToLower(sliceBody[i]) == "sharbert" || strings.ToLower(sliceBody[i]) == "fornax" {
+				sliceBody[i] = "****"
+			}
 		}
 
-		respBody := response{Valid: true}
-		dat, err := json.Marshal(respBody)
-		if err != nil {
-			respondWithError(w, http.StatusInternalServerError)
-		}
+		cleanedBody := strings.Join(sliceBody, " ")
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		w.Write(dat)
+		json.NewEncoder(w).Encode(map[string]string{"cleaned_body": cleanedBody})
 
 	})
 
