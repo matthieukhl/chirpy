@@ -30,6 +30,9 @@ func main() {
 	// Validate chirp endpoint
 	mux.HandleFunc("POST /api/validate_chirp", apiCfg.PostValidateChirp)
 
+	// Create a new user
+	mux.HandleFunc("POST /api/users", apiCfg.PostUsers)
+
 	// Serve HTTP
 	server := http.Server{
 		Addr:    ":8080",
