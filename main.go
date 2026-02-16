@@ -25,7 +25,7 @@ func main() {
 	mux.HandleFunc("GET /admin/metrics", apiCfg.GetAdminMetrics)
 
 	// Reset metrics endpoint
-	mux.HandleFunc("POST /admin/reset", apiCfg.PostAdminMetrics)
+	mux.HandleFunc("POST /admin/reset", apiCfg.PostAdminReset)
 
 	// Validate chirp endpoint
 	mux.HandleFunc("POST /api/validate_chirp", apiCfg.PostValidateChirp)
