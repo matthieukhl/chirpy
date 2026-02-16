@@ -13,9 +13,22 @@ import (
 type ApiConfig struct {
 	FileServerHits atomic.Int32
 	Queries        *database.Queries
+	Platform       string
 }
 
-func NewDB() *database.Queries {
+func NewConfig() ApiConfig {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return ApiConfig{
+		Queries:  newDB(),
+		Platform: os.Getenv("PLATFORM"),
+	}
+}
+
+func newDB() *database.Queries {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal(err)

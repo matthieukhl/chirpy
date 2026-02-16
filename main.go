@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// Init config
-	apiCfg := handlers.ApiConfig{Queries: handlers.NewDB()}
+	apiCfg := handlers.NewConfig()
 
 	// Register handlers
 	mux := http.NewServeMux()

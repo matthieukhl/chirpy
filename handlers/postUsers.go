@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -20,6 +21,7 @@ func (a *ApiConfig) PostUsers(w http.ResponseWriter, r *http.Request) {
 
 	user, err := a.Queries.CreateUser(r.Context(), params.Email)
 	if err != nil {
+		log.Println(err)
 		respondWithError(w, http.StatusInternalServerError)
 		return
 	}
