@@ -28,7 +28,7 @@ func main() {
 	mux.HandleFunc("POST /admin/reset", apiCfg.PostAdminReset)
 
 	// Validate chirp endpoint
-	mux.HandleFunc("POST /api/validate_chirp", apiCfg.PostValidateChirp)
+	mux.HandleFunc("POST /api/chirps", apiCfg.PostChirp)
 
 	// Create a new user
 	mux.HandleFunc("POST /api/users", apiCfg.PostUsers)
