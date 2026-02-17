@@ -36,6 +36,9 @@ func main() {
 	// GET all chirps
 	mux.HandleFunc("GET /api/chirps", apiCfg.GetChirps)
 
+	// GET chirp by ID
+	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.GetChirpByID)
+
 	// Serve HTTP
 	server := http.Server{
 		Addr:    ":8080",
