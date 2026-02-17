@@ -33,6 +33,9 @@ func main() {
 	// Create a new user
 	mux.HandleFunc("POST /api/users", apiCfg.PostUsers)
 
+	// GET all chirps
+	mux.HandleFunc("GET /api/chirps", apiCfg.GetChirps)
+
 	// Serve HTTP
 	server := http.Server{
 		Addr:    ":8080",
