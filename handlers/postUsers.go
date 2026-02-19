@@ -4,11 +4,15 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/matthieukhl/chirpy/internal/auth"
+	"github.com/matthieukhl/chirpy/internal/database"
 )
 
 func (a *ApiConfig) PostUsers(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
 	params := new(parameters)
@@ -19,7 +23,14 @@ func (a *ApiConfig) PostUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := a.Queries.CreateUser(r.Context(), params.Email)
+	hashedPassword, err := auth.HashPassword(params.Password)
+
+	args := database.CreateUserParams{
+		Email:          params.Email,
+		HashedPassword: hashedPassword,
+	}
+
+	user, err := a.Queries.CreateUser(r.Context(), args)
 	if err != nil {
 		log.Println(err)
 		respondWithError(w, http.StatusInternalServerError)
