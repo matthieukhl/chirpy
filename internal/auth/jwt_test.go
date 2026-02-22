@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -71,6 +72,29 @@ func TestValidateJWT(t *testing.T) {
 		}
 	})
 
+}
+
+func TestGetBearerToken(t *testing.T) {
+	t.Run("sucessful run", func(t *testing.T) {
+		got, err := GetBearerToken(http.Header{"Authorization": []string{"Bearer 12341234"}})
+		want := "12341234"
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assertStringsIsEqual(t, got, want)
+	})
+
+	t.Run("missing authorization header", func(t *testing.T) {
+		_, err := GetBearerToken(http.Header{})
+
+		if err == nil {
+			t.Error("expected an error got none")
+		}
+	})
+
+	t.Run()
 }
 
 func assertTokenIsGenerated(t *testing.T, token string) {
