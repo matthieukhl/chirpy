@@ -5,14 +5,16 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/matthieukhl/chirpy/internal/auth"
 )
 
 func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email            string `json:"email"`
+		Password         string `json:"password"`
+		ExpiresInSeconds int    `json:"expires_in_seconds"`
 	}
 
 	params := new(parameters)
@@ -27,6 +29,10 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 		log.Println("email and password cannot be empty")
 		respondWithError(w, http.StatusBadRequest)
 		return
+	}
+
+	if params.ExpiresInSeconds == 0 || params.ExpiresInSeconds > 3600 {
+		params.ExpiresInSeconds = 3600
 	}
 
 	user, err := a.Queries.GetUserByEmail(r.Context(), params.Email)
@@ -62,6 +68,17 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	expiresIn := time.Duration(params.ExpiresInSeconds) * time.Second
+
+	token, err := auth.MakeJWT(user.ID, a.JWTSecret, expiresIn)
+	if err != nil {
+		log.Println(err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"})
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{
@@ -69,6 +86,7 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 		"email":      user.Email,
 		"created_at": user.CreatedAt.String(),
 		"updated_at": user.UpdatedAt.String(),
+		"token":      token,
 	})
 
 }

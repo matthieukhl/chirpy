@@ -6,28 +6,38 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/uuid"
+	"github.com/matthieukhl/chirpy/internal/auth"
 	"github.com/matthieukhl/chirpy/internal/database"
 )
 
 func (a *ApiConfig) PostChirp(w http.ResponseWriter, r *http.Request) {
 	type payload struct {
-		Body   string `json:"body"`
-		UserID string `json:"user_id"`
+		Body string `json:"body"`
 	}
 
-	requestBody := new(payload)
-	err := json.NewDecoder(r.Body).Decode(requestBody)
+	token, err := auth.GetBearerToken(r.Header)
+	log.Println(token)
 	if err != nil {
-		log.Printf("failed to decode payload: %v", err)
-		respondWithError(w, http.StatusBadRequest)
+		log.Println(err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
 		return
 	}
 
-	// Check if user_id is a uuid
-	userUUID, err := uuid.Parse(requestBody.UserID)
+	userID, err := auth.ValidateJWT(token, a.JWTSecret)
 	if err != nil {
 		log.Println(err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		return
+	}
+
+	requestBody := new(payload)
+	err = json.NewDecoder(r.Body).Decode(requestBody)
+	if err != nil {
+		log.Printf("failed to decode payload: %v", err)
 		respondWithError(w, http.StatusBadRequest)
 		return
 	}
@@ -51,7 +61,7 @@ func (a *ApiConfig) PostChirp(w http.ResponseWriter, r *http.Request) {
 
 	args := database.CreateChirpParams{
 		Body:   cleanedBody,
-		UserID: userUUID,
+		UserID: userID,
 	}
 
 	chirp, err := a.Queries.CreateChirp(r.Context(), args)
