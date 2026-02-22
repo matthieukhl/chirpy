@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/matthieukhl/chirpy/internal/auth"
+	"github.com/matthieukhl/chirpy/internal/database"
 )
 
 func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Email            string `json:"email"`
-		Password         string `json:"password"`
-		ExpiresInSeconds int    `json:"expires_in_seconds"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
 	params := new(parameters)
@@ -29,10 +29,6 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 		log.Println("email and password cannot be empty")
 		respondWithError(w, http.StatusBadRequest)
 		return
-	}
-
-	if params.ExpiresInSeconds == 0 || params.ExpiresInSeconds > 3600 {
-		params.ExpiresInSeconds = 3600
 	}
 
 	user, err := a.Queries.GetUserByEmail(r.Context(), params.Email)
@@ -68,9 +64,25 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expiresIn := time.Duration(params.ExpiresInSeconds) * time.Second
+	expiresIn := time.Duration(1) * time.Hour
 
 	token, err := auth.MakeJWT(user.ID, a.JWTSecret, expiresIn)
+	if err != nil {
+		log.Println(err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"})
+		return
+	}
+
+	refreshToken := auth.MakeRefreshToken()
+
+	args := database.CreateRefreshTokenParams{
+		Token:  refreshToken,
+		UserID: user.ID,
+	}
+
+	_, err = a.Queries.CreateRefreshToken(r.Context(), args)
 	if err != nil {
 		log.Println(err)
 		w.Header().Set("Content-Type", "application/json")
@@ -82,11 +94,12 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{
-		"id":         user.ID.String(),
-		"email":      user.Email,
-		"created_at": user.CreatedAt.String(),
-		"updated_at": user.UpdatedAt.String(),
-		"token":      token,
+		"id":            user.ID.String(),
+		"email":         user.Email,
+		"created_at":    user.CreatedAt.String(),
+		"updated_at":    user.UpdatedAt.String(),
+		"token":         token,
+		"refresh_token": refreshToken,
 	})
 
 }
