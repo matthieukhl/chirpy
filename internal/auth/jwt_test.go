@@ -93,8 +93,6 @@ func TestGetBearerToken(t *testing.T) {
 			t.Error("expected an error got none")
 		}
 	})
-
-	t.Run()
 }
 
 func assertTokenIsGenerated(t *testing.T, token string) {

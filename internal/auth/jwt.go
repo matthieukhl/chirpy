@@ -75,5 +75,5 @@ func GetBearerToken(headers http.Header) (string, error) {
 	}
 
 	// Retrieve and clean Authorization token
-	return strings.Trim(authorization, "Bearer "), nil
+	return strings.TrimPrefix(authorization, "Bearer "), nil
 }
