@@ -14,6 +14,7 @@ type ApiConfig struct {
 	FileServerHits atomic.Int32
 	Queries        *database.Queries
 	Platform       string
+	JWTSecret      string
 }
 
 func NewConfig() ApiConfig {
@@ -23,8 +24,9 @@ func NewConfig() ApiConfig {
 	}
 
 	return ApiConfig{
-		Queries:  newDB(),
-		Platform: os.Getenv("PLATFORM"),
+		Queries:   newDB(),
+		Platform:  os.Getenv("PLATFORM"),
+		JWTSecret: os.Getenv("JWT_SECRET"),
 	}
 }
 
