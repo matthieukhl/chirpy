@@ -6,11 +6,30 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/matthieukhl/chirpy/internal/auth"
 )
 
 const event = "user.upgraded"
 
 func (a *ApiConfig) PostPolkaWebhooks(w http.ResponseWriter, r *http.Request) {
+	// Check API key
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		a.Logger.Error(err.Error(), "endpoint", r.URL.String())
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		return
+	}
+
+	if apiKey != a.PolkaApiKey {
+		a.Logger.Error("api key is not valid", "endpoint", r.URL.String())
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		return
+	}
+
 	var req struct {
 		Event string `json:"event"`
 		Data  struct {
@@ -18,7 +37,7 @@ func (a *ApiConfig) PostPolkaWebhooks(w http.ResponseWriter, r *http.Request) {
 		} `json:"data"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&req)
+	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		a.Logger.Error(err.Error(), "endpoint", r.URL.String())
 		w.Header().Set("Content-Type", "application/json")
