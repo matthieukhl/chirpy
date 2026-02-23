@@ -6,4 +6,4 @@ SET
     updated_at = NOW()
 WHERE 
     id = $3
-RETURNING id, created_at, updated_at, email;
+RETURNING id, created_at, updated_at, email, is_chirpy_red;

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/matthieukhl/chirpy/internal/auth"
@@ -99,6 +100,7 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 		"updated_at":    user.UpdatedAt.String(),
 		"token":         token,
 		"refresh_token": refreshToken,
+		"is_chirpy_red": strconv.FormatBool(user.IsChirpyRed.Bool),
 	})
 
 }

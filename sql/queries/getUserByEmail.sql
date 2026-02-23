@@ -3,6 +3,7 @@ SELECT
     id, 
     email,
     hashed_password,
+    is_chirpy_red,
     created_at,
     updated_at
 FROM 
