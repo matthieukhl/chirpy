@@ -49,6 +49,9 @@ func main() {
 	// PUT /api/users
 	mux.HandleFunc("PUT /api/users", apiCfg.PutUsers)
 
+	// DETEL /api/chirps
+	mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiCfg.DeleteChirps)
+
 	// Serve HTTP
 	server := http.Server{
 		Addr:    ":8080",
