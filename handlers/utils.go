@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"log"
+	"log/slog"
 	"net/http"
 )
 
@@ -19,6 +20,7 @@ func respondWithError(w http.ResponseWriter, code int) {
 		response := resp{Error: "Chirp is too long"}
 		dat, err := json.Marshal(response)
 		if err != nil {
+			slog.Error(err.Error())
 			respondWithError(w, http.StatusInternalServerError)
 		}
 		w.Write(dat)

@@ -18,7 +18,7 @@ func (a *ApiConfig) PostChirp(w http.ResponseWriter, r *http.Request) {
 	token, err := auth.GetBearerToken(r.Header)
 	log.Println(token)
 	if err != nil {
-		log.Println(err)
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/chirps")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
@@ -27,7 +27,7 @@ func (a *ApiConfig) PostChirp(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := auth.ValidateJWT(token, a.JWTSecret)
 	if err != nil {
-		log.Println(err)
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/chirps")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
@@ -37,14 +37,14 @@ func (a *ApiConfig) PostChirp(w http.ResponseWriter, r *http.Request) {
 	requestBody := new(payload)
 	err = json.NewDecoder(r.Body).Decode(requestBody)
 	if err != nil {
-		log.Printf("failed to decode payload: %v", err)
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/chirps")
 		respondWithError(w, http.StatusBadRequest)
 		return
 	}
 
 	// Check chirp length
 	if len(requestBody.Body) > 140 {
-		log.Println(err)
+		a.Logger.Error("invalid chirp length")
 		respondWithError(w, http.StatusBadRequest)
 		return
 	}
@@ -66,7 +66,7 @@ func (a *ApiConfig) PostChirp(w http.ResponseWriter, r *http.Request) {
 
 	chirp, err := a.Queries.CreateChirp(r.Context(), args)
 	if err != nil {
-		log.Printf("failed to create chirp: %v", err)
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/chirps")
 		respondWithError(w, http.StatusInternalServerError)
 		return
 	}

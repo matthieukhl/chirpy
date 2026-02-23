@@ -15,11 +15,13 @@ func (a *ApiConfig) PostValidateChirp(w http.ResponseWriter, r *http.Request) {
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/users")
 		respondWithError(w, http.StatusInternalServerError)
 		return
 	}
 
 	if len(params.Body) > 140 {
+		a.Logger.Error("invalid chirp length")
 		respondWithError(w, http.StatusBadRequest)
 		return
 	}

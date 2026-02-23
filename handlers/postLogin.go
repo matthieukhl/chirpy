@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -20,13 +19,13 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 	params := new(parameters)
 	err := json.NewDecoder(r.Body).Decode(params)
 	if err != nil {
-		log.Println(err)
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/login")
 		respondWithError(w, http.StatusBadRequest)
 		return
 	}
 
 	if params.Email == "" || params.Password == "" {
-		log.Println("email and password cannot be empty")
+		a.Logger.Error("email and password cannot be empty")
 		respondWithError(w, http.StatusBadRequest)
 		return
 	}
@@ -34,13 +33,13 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 	user, err := a.Queries.GetUserByEmail(r.Context(), params.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Println(err)
+			a.Logger.Warn(err.Error(), "endpoint", "POST /api/login")
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Incorrect email or password"})
 			return
 		}
-		log.Println(err)
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/login")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Incorrect email or password"})
@@ -49,7 +48,7 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 
 	isPasswordMatch, err := auth.CheckPasswordHash(params.Password, user.HashedPassword)
 	if err != nil {
-		log.Println(err)
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/login")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Incorrect email or password"})
@@ -57,7 +56,7 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !isPasswordMatch {
-		log.Println("Passwords don't match")
+		a.Logger.Error("wrong password")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Incorrect email or password"})
@@ -68,7 +67,7 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 
 	token, err := auth.MakeJWT(user.ID, a.JWTSecret, expiresIn)
 	if err != nil {
-		log.Println(err)
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/login")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"})
@@ -84,7 +83,7 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 
 	_, err = a.Queries.CreateRefreshToken(r.Context(), args)
 	if err != nil {
-		log.Println(err)
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/login")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"})

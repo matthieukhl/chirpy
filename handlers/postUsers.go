@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/matthieukhl/chirpy/internal/auth"
@@ -19,6 +18,7 @@ func (a *ApiConfig) PostUsers(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(params)
 	if err != nil {
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/users")
 		respondWithError(w, http.StatusBadRequest)
 		return
 	}
@@ -32,7 +32,7 @@ func (a *ApiConfig) PostUsers(w http.ResponseWriter, r *http.Request) {
 
 	user, err := a.Queries.CreateUser(r.Context(), args)
 	if err != nil {
-		log.Println(err)
+		a.Logger.Error(err.Error(), "endpoint", "POST /api/users")
 		respondWithError(w, http.StatusInternalServerError)
 		return
 	}

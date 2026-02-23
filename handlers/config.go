@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"log"
+	"log/slog"
 	"os"
 	"sync/atomic"
 
@@ -15,6 +16,7 @@ type ApiConfig struct {
 	Queries        *database.Queries
 	Platform       string
 	JWTSecret      string
+	Logger         *slog.Logger
 }
 
 func NewConfig() ApiConfig {
@@ -23,10 +25,13 @@ func NewConfig() ApiConfig {
 		log.Fatal(err)
 	}
 
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
 	return ApiConfig{
 		Queries:   newDB(),
 		Platform:  os.Getenv("PLATFORM"),
 		JWTSecret: os.Getenv("JWT_SECRET"),
+		Logger:    logger,
 	}
 }
 
