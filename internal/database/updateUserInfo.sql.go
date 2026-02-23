@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -15,10 +16,11 @@ const updateUserInfo = `-- name: UpdateUserInfo :one
 UPDATE users 
 SET 
     email = $1,
-    hashed_password = $2
+    hashed_password = $2,
+    updated_at = NOW()
 WHERE 
     id = $3
-RETURNING id, created_at, updated_at, email, hashed_password
+RETURNING id, created_at, updated_at, email
 `
 
 type UpdateUserInfoParams struct {
@@ -27,15 +29,21 @@ type UpdateUserInfoParams struct {
 	ID             uuid.UUID `json:"id"`
 }
 
-func (q *Queries) UpdateUserInfo(ctx context.Context, arg UpdateUserInfoParams) (User, error) {
+type UpdateUserInfoRow struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Email     string    `json:"email"`
+}
+
+func (q *Queries) UpdateUserInfo(ctx context.Context, arg UpdateUserInfoParams) (UpdateUserInfoRow, error) {
 	row := q.db.QueryRowContext(ctx, updateUserInfo, arg.Email, arg.HashedPassword, arg.ID)
-	var i User
+	var i UpdateUserInfoRow
 	err := row.Scan(
 		&i.ID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Email,
-		&i.HashedPassword,
 	)
 	return i, err
 }
