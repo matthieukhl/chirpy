@@ -9,11 +9,14 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const getRefreshToken = `-- name: GetRefreshToken :one
 SELECT 
     token, 
+    user_id,
     expires_at, 
     revoked_at
 FROM 
@@ -24,6 +27,7 @@ WHERE
 
 type GetRefreshTokenRow struct {
 	Token     string       `json:"token"`
+	UserID    uuid.UUID    `json:"user_id"`
 	ExpiresAt time.Time    `json:"expires_at"`
 	RevokedAt sql.NullTime `json:"revoked_at"`
 }
@@ -31,6 +35,11 @@ type GetRefreshTokenRow struct {
 func (q *Queries) GetRefreshToken(ctx context.Context, token string) (GetRefreshTokenRow, error) {
 	row := q.db.QueryRowContext(ctx, getRefreshToken, token)
 	var i GetRefreshTokenRow
-	err := row.Scan(&i.Token, &i.ExpiresAt, &i.RevokedAt)
+	err := row.Scan(
+		&i.Token,
+		&i.UserID,
+		&i.ExpiresAt,
+		&i.RevokedAt,
+	)
 	return i, err
 }
