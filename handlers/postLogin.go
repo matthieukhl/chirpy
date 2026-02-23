@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/matthieukhl/chirpy/internal/auth"
@@ -93,14 +92,14 @@ func (a *ApiConfig) PostLogin(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
+	json.NewEncoder(w).Encode(map[string]any{
 		"id":            user.ID.String(),
 		"email":         user.Email,
 		"created_at":    user.CreatedAt.String(),
 		"updated_at":    user.UpdatedAt.String(),
 		"token":         token,
 		"refresh_token": refreshToken,
-		"is_chirpy_red": strconv.FormatBool(user.IsChirpyRed),
+		"is_chirpy_red": user.IsChirpyRed,
 	})
 
 }
