@@ -7,7 +7,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,11 +25,11 @@ RETURNING
 `
 
 type UpgradeChirpyRedRow struct {
-	ID          uuid.UUID    `json:"id"`
-	CreatedAt   time.Time    `json:"created_at"`
-	UpdatedAt   time.Time    `json:"updated_at"`
-	Email       string       `json:"email"`
-	IsChirpyRed sql.NullBool `json:"is_chirpy_red"`
+	ID          uuid.UUID `json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	Email       string    `json:"email"`
+	IsChirpyRed bool      `json:"is_chirpy_red"`
 }
 
 func (q *Queries) UpgradeChirpyRed(ctx context.Context, id uuid.UUID) (UpgradeChirpyRedRow, error) {
