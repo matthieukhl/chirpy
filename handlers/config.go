@@ -16,6 +16,7 @@ type ApiConfig struct {
 	Queries        *database.Queries
 	Platform       string
 	JWTSecret      string
+	PolkaApiKey    string
 	Logger         *slog.Logger
 }
 
@@ -28,10 +29,11 @@ func NewConfig() ApiConfig {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	return ApiConfig{
-		Queries:   newDB(),
-		Platform:  os.Getenv("PLATFORM"),
-		JWTSecret: os.Getenv("JWT_SECRET"),
-		Logger:    logger,
+		Queries:     newDB(),
+		Platform:    os.Getenv("PLATFORM"),
+		JWTSecret:   os.Getenv("JWT_SECRET"),
+		PolkaApiKey: os.Getenv("POLKA_KEY"),
+		Logger:      logger,
 	}
 }
 
