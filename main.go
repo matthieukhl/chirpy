@@ -46,6 +46,9 @@ func main() {
 
 	mux.HandleFunc("POST /api/refresh", apiCfg.PostRefresh)
 
+	// PUT /api/users
+	mux.HandleFunc("PUT /api/users", apiCfg.PutUsers)
+
 	// Serve HTTP
 	server := http.Server{
 		Addr:    ":8080",
